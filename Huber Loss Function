@@ -1,0 +1,49 @@
+import numpy as np
+import tensorflow as tf
+from tensorflow.keras import layers, models
+from sklearn.preprocessing import StandardScaler
+
+# Reproducibility
+np.random.seed(42)
+tf.random.set_seed(42)
+
+# Data
+X = np.array([
+    [1.0, 2.0],
+    [2.0, 1.0],
+    [3.0, 4.0],
+    [4.0, 3.0],
+    [5.0, 6.0]
+])
+
+y = np.array([5, 6, 9, 10, 13], dtype=np.float32)
+
+# Normalize target
+y_scaler = StandardScaler()
+y_scaled = y_scaler.fit_transform(y.reshape(-1, 1))
+
+# Model
+model = models.Sequential([
+    layers.Input(shape=(2,)),
+    layers.Dense(16, activation="relu"),
+    layers.Dense(8, activation="relu"),
+    layers.Dense(1)
+])
+
+model.compile(
+    optimizer=tf.keras.optimizers.Adam(learning_rate=0.01),
+    loss=tf.keras.losses.Huber(delta=0.5),
+    metrics=["mae"]
+)
+
+# Train
+model.fit(X, y_scaled, epochs=500, verbose=0)
+
+# Predict
+pred_scaled = model.predict(X)
+pred = y_scaler.inverse_transform(pred_scaled)
+
+print("Predictions:")
+print(pred.flatten())
+print("True values:")
+print(y)
